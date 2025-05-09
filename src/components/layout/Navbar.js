@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -12,9 +12,19 @@ import {
   MenuItem,
   Avatar,
   useScrollTrigger,
-  Slide
+  Slide,
+  Container,
+  Divider,
+  ListItemIcon
 } from '@mui/material';
-import { AccountCircle, Upload, VideoLibrary } from '@mui/icons-material';
+import {
+  AccountCircle,
+  Upload,
+  PlayCircle,
+  Person,
+  ExitToApp,
+  Settings
+} from '@mui/icons-material';
 import { logout } from '../../store/slices/authSlice';
 
 // Hide navbar on scroll down
@@ -33,7 +43,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector(state => state.auth);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -50,8 +60,8 @@ const Navbar = () => {
   };
 
   const handleProfile = () => {
-    handleClose();
     navigate('/profile');
+    handleClose();
   };
 
   return (
@@ -65,153 +75,157 @@ const Navbar = () => {
           borderColor: 'divider',
         }}
       >
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component={RouterLink}
-            to="/"
-            sx={{
-              flexGrow: 1,
-              textDecoration: 'none',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              fontWeight: 600,
-            }}
-          >
-            <VideoLibrary />
-            Video App
-          </Typography>
+        <Container maxWidth="lg">
+          <Toolbar sx={{ px: { xs: 0 }, height: 70 }}>
+            <Typography
+              variant="h5"
+              component={RouterLink}
+              to="/"
+              sx={{
+                flexGrow: 1,
+                textDecoration: 'none',
+                color: 'primary.main',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
+                '&:hover': {
+                  color: 'primary.dark',
+                },
+              }}
+            >
+              <PlayCircle sx={{ fontSize: 32 }} />
+              StreamVibe
+            </Typography>
 
-          {isAuthenticated ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              {user?.role === 'creator' && (
-                <Button
-                  variant="contained"
-                  component={RouterLink}
-                  to="/upload"
-                  startIcon={<Upload />}
-                  sx={{
-                    backgroundColor: 'primary.main',
-                    '&:hover': {
-                      backgroundColor: 'primary.dark',
-                    },
-                  }}
-                >
-                  Upload
-                </Button>
-              )}
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-                sx={{
-                  border: '2px solid',
-                  borderColor: 'primary.main',
-                  '&:hover': {
-                    backgroundColor: 'primary.light',
-                    color: 'white',
-                  },
-                }}
-              >
-                {user?.name ? (
-                  <Avatar 
-                    sx={{ 
-                      width: 32, 
-                      height: 32,
+            {isAuthenticated ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {user?.role === 'creator' && (
+                  <Button
+                    variant="contained"
+                    component={RouterLink}
+                    to="/upload"
+                    startIcon={<Upload />}
+                    sx={{
                       backgroundColor: 'primary.main',
+                      fontWeight: 600,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      px: 3,
+                      '&:hover': {
+                        backgroundColor: 'primary.dark',
+                        transform: 'translateY(-1px)',
+                      },
+                      transition: 'transform 0.2s ease-in-out',
                     }}
                   >
-                    {user.name[0].toUpperCase()}
-                  </Avatar>
-                ) : (
-                  <AccountCircle />
+                    Upload
+                  </Button>
                 )}
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-                PaperProps={{
-                  sx: {
-                    mt: 1.5,
-                    borderRadius: 2,
-                    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                  },
-                }}
-              >
-                <MenuItem 
-                  onClick={handleProfile}
+                
+                <IconButton
+                  onClick={handleMenu}
                   sx={{
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    p: 1,
                     '&:hover': {
                       backgroundColor: 'primary.light',
-                      color: 'white',
+                      '& .MuiSvgIcon-root': {
+                        color: 'white',
+                      },
                     },
                   }}
                 >
-                  Profile
-                </MenuItem>
-                <MenuItem 
-                  onClick={handleLogout}
+                  {user?.avatar ? (
+                    <Avatar 
+                      src={user.avatar} 
+                      alt={user.name}
+                      sx={{ width: 32, height: 32 }}
+                    />
+                  ) : (
+                    <AccountCircle sx={{ color: 'primary.main' }} />
+                  )}
+                </IconButton>
+                
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                  onClick={handleClose}
+                  PaperProps={{
+                    sx: {
+                      mt: 1.5,
+                      minWidth: 200,
+                      borderRadius: 2,
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    },
+                  }}
+                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                >
+                  <Box sx={{ px: 2, py: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      {user?.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {user?.email}
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <MenuItem onClick={handleProfile} sx={{ py: 1.5 }}>
+                    <ListItemIcon>
+                      <Person fontSize="small" />
+                    </ListItemIcon>
+                    Profile
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
+                    <ListItemIcon>
+                      <ExitToApp fontSize="small" />
+                    </ListItemIcon>
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  component={RouterLink}
+                  to="/login"
+                  variant="outlined"
                   sx={{
-                    color: 'error.main',
+                    fontWeight: 600,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    borderWidth: 2,
                     '&:hover': {
-                      backgroundColor: 'error.light',
-                      color: 'white',
+                      borderWidth: 2,
                     },
                   }}
                 >
-                  Logout
-                </MenuItem>
-              </Menu>
-            </Box>
-          ) : (
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button
-                variant="outlined"
-                component={RouterLink}
-                to="/login"
-                sx={{
-                  borderColor: 'primary.main',
-                  color: 'primary.main',
-                  '&:hover': {
-                    borderColor: 'primary.dark',
-                    backgroundColor: 'primary.light',
-                    color: 'white',
-                  },
-                }}
-              >
-                Login
-              </Button>
-              <Button
-                variant="contained"
-                component={RouterLink}
-                to="/register"
-                sx={{
-                  backgroundColor: 'primary.main',
-                  '&:hover': {
-                    backgroundColor: 'primary.dark',
-                  },
-                }}
-              >
-                Register
-              </Button>
-            </Box>
-          )}
-        </Toolbar>
+                  Login
+                </Button>
+                <Button
+                  component={RouterLink}
+                  to="/register"
+                  variant="contained"
+                  sx={{
+                    fontWeight: 600,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                    },
+                    transition: 'transform 0.2s ease-in-out',
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </Box>
+            )}
+          </Toolbar>
+        </Container>
       </AppBar>
     </HideOnScroll>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -17,13 +17,17 @@ import {
   CircularProgress,
   Divider,
   Tab,
-  Tabs
+  Tabs,
+  Chip,
+  CardActionArea
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   PhotoLibrary as PhotoLibraryIcon,
-  Videocam as VideocamIcon
+  Videocam as VideocamIcon,
+  LocationOn,
+  CalendarToday
 } from '@mui/icons-material';
 import { fetchUserMedia, deleteMedia } from '../../store/slices/mediaSlice';
 
@@ -32,7 +36,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
   const { userMedia, loading } = useSelector(state => state.media);
-  const [tabValue, setTabValue] = React.useState(0);
+  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -48,6 +52,11 @@ const Profile = () => {
     if (window.confirm('Are you sure you want to delete this media?')) {
       await dispatch(deleteMedia(mediaId));
     }
+  };
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   if (!user) {
@@ -67,39 +76,64 @@ const Profile = () => {
   return (
     <Container maxWidth="lg">
       <Fade in={true} timeout={500}>
-        <Box sx={{ mt: 4, mb: 4 }}>
-          <Paper elevation={3} sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+        <Box sx={{ py: 4 }}>
+          <Paper 
+            elevation={0}
+            sx={{ 
+              p: 4,
+              mb: 4,
+              borderRadius: 4,
+              backgroundColor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
               <Avatar
+                src={user.avatar}
+                alt={user.name}
                 sx={{
-                  width: 100,
-                  height: 100,
-                  bgcolor: 'primary.main',
-                  fontSize: '2.5rem',
-                  mr: 3
+                  width: 120,
+                  height: 120,
+                  border: '4px solid',
+                  borderColor: 'primary.main',
                 }}
               >
-                {user.name?.[0]?.toUpperCase()}
+                {user.name[0].toUpperCase()}
               </Avatar>
               <Box>
-                <Typography variant="h4" component="h1" gutterBottom>
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
                   {user.name}
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  {user.email}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Role: {user.role}
-                </Typography>
+                <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CalendarToday fontSize="small" />
+                    <Typography variant="body2">
+                      Joined {formatDate(user.createdAt)}
+                    </Typography>
+                  </Box>
+                  {user.location && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LocationOn fontSize="small" />
+                      <Typography variant="body2">
+                        {user.location}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+                {user.bio && (
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      mt: 2,
+                      color: 'text.secondary',
+                      maxWidth: 600,
+                    }}
+                  >
+                    {user.bio}
+                  </Typography>
+                )}
               </Box>
-              <Button
-                variant="outlined"
-                startIcon={<EditIcon />}
-                sx={{ ml: 'auto' }}
-                onClick={() => navigate('/profile/edit')}
-              >
-                Edit Profile
-              </Button>
             </Box>
 
             <Divider sx={{ mb: 4 }} />
@@ -111,6 +145,7 @@ const Profile = () => {
                 sx={{
                   '& .MuiTab-root': {
                     minWidth: 120,
+                    fontWeight: 600,
                   },
                 }}
               >
@@ -141,59 +176,70 @@ const Profile = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         position: 'relative',
+                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                         '&:hover': {
+                          transform: 'translateY(-8px)',
+                          boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
                           '& .media-actions': {
                             opacity: 1,
                           },
                         },
                       }}
                     >
-                      <Box sx={{ position: 'relative' }}>
-                        <CardMedia
-                          component={media.type === 'video' ? 'video' : 'img'}
-                          height="200"
-                          image={media.url}
-                          alt={media.title}
-                          sx={{ objectFit: 'cover' }}
-                        />
-                        <Box
-                          className="media-actions"
-                          sx={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            display: 'flex',
-                            gap: 1,
-                            opacity: 0,
-                            transition: 'opacity 0.3s ease-in-out',
-                          }}
-                        >
-                          <IconButton
-                            size="small"
+                      <CardActionArea onClick={() => navigate(`/media/${media._id}`)}>
+                        <Box sx={{ position: 'relative' }}>
+                          <CardMedia
+                            component={media.type === 'video' ? 'video' : 'img'}
+                            height="200"
+                            image={media.url}
+                            alt={media.title}
+                            sx={{ objectFit: 'cover' }}
+                          />
+                          <Box
+                            className="media-actions"
                             sx={{
-                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                              '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                              },
+                              position: 'absolute',
+                              top: 8,
+                              right: 8,
+                              display: 'flex',
+                              gap: 1,
+                              opacity: 0,
+                              transition: 'opacity 0.3s ease-in-out',
                             }}
-                            onClick={() => navigate(`/media/${media._id}`)}
                           >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            sx={{
-                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                              '&:hover': {
+                            <IconButton
+                              size="small"
+                              sx={{
                                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                              },
-                            }}
-                            onClick={() => handleDeleteMedia(media._id)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                                '&:hover': {
+                                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                                },
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/media/${media._id}`);
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              sx={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                                },
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteMedia(media._id);
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
                         </Box>
-                      </Box>
+                      </CardActionArea>
                       <CardContent>
                         <Typography gutterBottom variant="h6" component="h2" noWrap>
                           {media.title}
@@ -206,10 +252,28 @@ const Profile = () => {
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
                             overflow: 'hidden',
+                            mb: 2,
                           }}
                         >
                           {media.caption}
                         </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {media.tags?.map((tag, index) => (
+                            <Chip
+                              key={index}
+                              label={tag}
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                borderRadius: 1,
+                                '&:hover': {
+                                  backgroundColor: 'primary.light',
+                                  color: 'white',
+                                },
+                              }}
+                            />
+                          ))}
+                        </Box>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -231,7 +295,17 @@ const Profile = () => {
                 <Button
                   variant="contained"
                   onClick={() => navigate('/upload')}
-                  sx={{ mt: 2 }}
+                  sx={{
+                    mt: 2,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    px: 4,
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                    },
+                    transition: 'transform 0.2s ease-in-out',
+                  }}
                 >
                   Upload {tabValue === 0 ? 'Image' : 'Video'}
                 </Button>
