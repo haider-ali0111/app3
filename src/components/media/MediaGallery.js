@@ -19,7 +19,9 @@ import {
   Skeleton,
   CircularProgress,
   CardActionArea,
-  Avatar
+  Avatar,
+  useTheme,
+  alpha
 } from '@mui/material';
 import {
   Search,
@@ -27,11 +29,13 @@ import {
   Person,
   VideoLibrary,
   PlayCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AccessTime
 } from '@mui/icons-material';
 import { fetchMedia, searchMedia } from '../../store/slices/mediaSlice';
 
 const MediaGallery = () => {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { media, loading, totalPages, currentPage } = useSelector(state => state.media);
@@ -71,30 +75,67 @@ const MediaGallery = () => {
 
   const renderSkeleton = () => (
     <Grid item xs={12} sm={6} md={4}>
-      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Skeleton variant="rectangular" height={200} />
+      <Card 
+        sx={{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          borderRadius: 3,
+          background: alpha(theme.palette.background.paper, 0.8),
+          backdropFilter: 'blur(10px)',
+          transition: 'all 0.3s ease-in-out',
+          '&:hover': {
+            transform: 'translateY(-8px)',
+            boxShadow: theme.shadows[8],
+          }
+        }}
+      >
+        <Skeleton variant="rectangular" height={240} sx={{ borderRadius: '16px 16px 0 0' }} />
         <CardContent>
-          <Skeleton variant="text" height={32} />
-          <Skeleton variant="text" height={24} />
-          <Skeleton variant="text" height={24} />
-          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-            <Skeleton variant="rectangular" width={60} height={24} />
-            <Skeleton variant="rectangular" width={60} height={24} />
+          <Skeleton variant="text" height={32} sx={{ mb: 1 }} />
+          <Skeleton variant="text" height={24} sx={{ mb: 1 }} />
+          <Skeleton variant="text" height={24} sx={{ mb: 2 }} />
+          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+            <Skeleton variant="rectangular" width={60} height={24} sx={{ borderRadius: 1 }} />
+            <Skeleton variant="rectangular" width={60} height={24} sx={{ borderRadius: 1 }} />
           </Box>
+          <Skeleton variant="circular" width={32} height={32} />
         </CardContent>
       </Card>
     </Grid>
   );
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 6 }}>
       <Fade in={true} timeout={500}>
         <Box>
-          <Box sx={{ mb: 6, textAlign: 'center' }}>
-            <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700, color: 'primary.main' }}>
+          <Box sx={{ mb: 8, textAlign: 'center' }}>
+            <Typography 
+              variant="h2" 
+              component="h1" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 800,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                backgroundClip: 'text',
+                textFillColor: 'transparent',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 2
+              }}
+            >
               Discover Amazing Content
             </Typography>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
+            <Typography 
+              variant="h6" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 4,
+                maxWidth: '600px',
+                mx: 'auto',
+                lineHeight: 1.6
+              }}
+            >
               Explore videos and images shared by our creative community
             </Typography>
             <TextField
@@ -105,19 +146,32 @@ const MediaGallery = () => {
               onChange={handleSearch}
               sx={{
                 maxWidth: 600,
+                mx: 'auto',
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'background.paper',
+                  backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                  backdropFilter: 'blur(10px)',
                   borderRadius: 3,
                   height: 56,
-                  '&:hover fieldset': {
-                    borderColor: 'primary.main',
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.background.paper, 0.95),
+                    '& fieldset': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: theme.palette.background.paper,
+                    '& fieldset': {
+                      borderWidth: 2,
+                      borderColor: theme.palette.primary.main,
+                    },
                   },
                 },
               }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Search color="primary" />
+                    <Search sx={{ color: theme.palette.primary.main }} />
                   </InputAdornment>
                 ),
               }}
@@ -140,10 +194,13 @@ const MediaGallery = () => {
                         flexDirection: 'column',
                         position: 'relative',
                         cursor: 'pointer',
-                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                        borderRadius: 3,
+                        background: alpha(theme.palette.background.paper, 0.8),
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.3s ease-in-out',
                         '&:hover': {
                           transform: 'translateY(-8px)',
-                          boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
+                          boxShadow: theme.shadows[8],
                           '& .media-overlay': {
                             opacity: 1,
                           },
@@ -157,7 +214,10 @@ const MediaGallery = () => {
                             height="240"
                             image={item.url}
                             alt={item.title}
-                            sx={{ objectFit: 'cover' }}
+                            sx={{ 
+                              objectFit: 'cover',
+                              borderRadius: '16px 16px 0 0',
+                            }}
                           />
                           <Box
                             className="media-overlay"
@@ -167,12 +227,14 @@ const MediaGallery = () => {
                               left: 0,
                               right: 0,
                               bottom: 0,
-                              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                              backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                              backdropFilter: 'blur(4px)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               opacity: 0,
-                              transition: 'opacity 0.3s ease-in-out',
+                              transition: 'all 0.3s ease-in-out',
+                              borderRadius: '16px 16px 0 0',
                             }}
                           >
                             {item.type === 'video' ? (
@@ -182,6 +244,7 @@ const MediaGallery = () => {
                             )}
                           </Box>
                           <Chip
+                            icon={item.type === 'video' ? <VideoLibrary /> : <ImageIcon />}
                             label={item.type === 'video' ? 'Video' : 'Image'}
                             color="primary"
                             size="small"
@@ -189,12 +252,25 @@ const MediaGallery = () => {
                               position: 'absolute',
                               top: 16,
                               right: 16,
-                              backgroundColor: 'rgba(124, 77, 255, 0.9)',
+                              backdropFilter: 'blur(4px)',
+                              backgroundColor: alpha(theme.palette.primary.main, 0.9),
+                              '& .MuiChip-icon': {
+                                color: 'white',
+                              },
                             }}
                           />
                         </Box>
                         <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                          <Typography gutterBottom variant="h6" component="h2" noWrap sx={{ fontWeight: 600 }}>
+                          <Typography 
+                            gutterBottom 
+                            variant="h6" 
+                            component="h2" 
+                            noWrap 
+                            sx={{ 
+                              fontWeight: 600,
+                              color: theme.palette.text.primary,
+                            }}
+                          >
                             {item.title}
                           </Typography>
                           <Typography
@@ -207,6 +283,7 @@ const MediaGallery = () => {
                               WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
                               minHeight: '40px',
+                              lineHeight: 1.6,
                             }}
                           >
                             {item.caption}
@@ -217,13 +294,18 @@ const MediaGallery = () => {
                               readOnly
                               precision={0.5}
                               size="small"
+                              sx={{
+                                '& .MuiRating-iconFilled': {
+                                  color: theme.palette.primary.main,
+                                },
+                              }}
                             />
                             <Typography variant="body2" color="text.secondary">
                               ({item.ratings?.length || 0})
                             </Typography>
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                            <LocationOn fontSize="small" color="primary" />
+                            <LocationOn fontSize="small" sx={{ color: theme.palette.primary.main }} />
                             <Typography variant="body2" color="text.secondary" noWrap>
                               {item.location || 'No location'}
                             </Typography>
@@ -233,7 +315,7 @@ const MediaGallery = () => {
                               sx={{
                                 width: 32,
                                 height: 32,
-                                backgroundColor: 'primary.main',
+                                backgroundColor: theme.palette.primary.main,
                                 fontSize: '1rem',
                               }}
                             >
@@ -252,9 +334,13 @@ const MediaGallery = () => {
                                 variant="outlined"
                                 sx={{
                                   borderRadius: 1,
+                                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                                  color: theme.palette.text.secondary,
+                                  transition: 'all 0.2s ease-in-out',
                                   '&:hover': {
-                                    backgroundColor: 'primary.light',
-                                    color: 'white',
+                                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                    borderColor: theme.palette.primary.main,
+                                    color: theme.palette.primary.main,
                                   },
                                 }}
                               />
@@ -270,7 +356,7 @@ const MediaGallery = () => {
           )}
 
           {!searchQuery && totalPages > 1 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
               <Pagination
                 count={totalPages}
                 page={currentPage}
@@ -279,12 +365,18 @@ const MediaGallery = () => {
                 size="large"
                 sx={{
                   '& .MuiPaginationItem-root': {
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease-in-out',
                     '&.Mui-selected': {
-                      backgroundColor: 'primary.main',
+                      backgroundColor: theme.palette.primary.main,
                       color: 'white',
+                      fontWeight: 600,
                       '&:hover': {
-                        backgroundColor: 'primary.dark',
+                        backgroundColor: theme.palette.primary.dark,
                       },
+                    },
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
                     },
                   },
                 }}

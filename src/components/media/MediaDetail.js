@@ -20,7 +20,11 @@ import {
   Fade,
   Skeleton,
   CircularProgress,
-  Grid
+  Grid,
+  useTheme,
+  alpha,
+  Card,
+  CardContent
 } from '@mui/material';
 import {
   LocationOn,
@@ -30,17 +34,22 @@ import {
   Comment,
   PlayCircle,
   Image as ImageIcon,
-  AccessTime
+  AccessTime,
+  Share,
+  BookmarkBorder,
+  Bookmark
 } from '@mui/icons-material';
 import { fetchMediaById, addComment, addRating } from '../../store/slices/mediaSlice';
 
 const MediaDetail = () => {
+  const theme = useTheme();
   const { id } = useParams();
   const dispatch = useDispatch();
   const { currentMedia: media, loading } = useSelector(state => state.media);
   const { user } = useSelector(state => state.auth);
   const [comment, setComment] = useState('');
   const [userRating, setUserRating] = useState(0);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   useEffect(() => {
     dispatch(fetchMediaById(id));
@@ -59,296 +68,326 @@ const MediaDetail = () => {
     dispatch(addRating({ mediaId: id, value: newValue }));
   };
 
-  if (loading || !media) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <CircularProgress />
-        </Box>
-      </Container>
-    );
-  }
-
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  if (loading || !media) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 6 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <CircularProgress size={48} sx={{ color: theme.palette.primary.main }} />
+        </Box>
+      </Container>
+    );
+  }
+
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="xl" sx={{ py: 6 }}>
       <Fade in={true} timeout={500}>
-        <Box sx={{ py: 4 }}>
-          <Grid container spacing={4}>
-            {/* Left Column - Media Content */}
-            <Grid item xs={12} md={8}>
-              <Paper 
-                elevation={0}
+        <Grid container spacing={4}>
+          {/* Left Column - Media Content */}
+          <Grid item xs={12} lg={8}>
+            <Card 
+              elevation={0}
+              sx={{ 
+                borderRadius: 4,
+                overflow: 'hidden',
+                backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+              }}
+            >
+              <Box 
                 sx={{ 
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                  backgroundColor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
+                  position: 'relative',
+                  backgroundColor: 'black',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  minHeight: 500,
+                  maxHeight: 'calc(100vh - 200px)',
                 }}
               >
-                <Box 
-                  sx={{ 
-                    position: 'relative',
-                    backgroundColor: 'black',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: 500,
-                  }}
-                >
-                  {media.type === 'video' ? (
-                    <video
-                      src={media.url}
-                      controls
-                      style={{ width: '100%', maxHeight: '600px' }}
-                    />
-                  ) : (
-                    <img
-                      src={media.url}
-                      alt={media.title}
-                      style={{ width: '100%', maxHeight: '600px', objectFit: 'contain' }}
-                    />
-                  )}
-                </Box>
+                {media.type === 'video' ? (
+                  <video
+                    src={media.url}
+                    controls
+                    style={{ width: '100%', height: '100%', maxHeight: 'calc(100vh - 200px)', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <img
+                    src={media.url}
+                    alt={media.title}
+                    style={{ width: '100%', height: '100%', maxHeight: 'calc(100vh - 200px)', objectFit: 'contain' }}
+                  />
+                )}
+              </Box>
 
-                <Box sx={{ p: 4 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 3 }}>
-                    <Box>
-                      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-                        {media.title}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar sx={{ bgcolor: 'primary.main' }}>
-                            {media.creator?.name?.[0]?.toUpperCase()}
-                          </Avatar>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+              <CardContent sx={{ p: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                  <Box>
+                    <Typography 
+                      variant="h4" 
+                      component="h1" 
+                      gutterBottom
+                      sx={{
+                        fontWeight: 700,
+                        color: theme.palette.text.primary,
+                        mb: 2
+                      }}
+                    >
+                      {media.title}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Avatar
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            backgroundColor: theme.palette.primary.main,
+                          }}
+                        >
+                          {media.creator?.name?.[0]?.toUpperCase()}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                             {media.creator?.name}
                           </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <AccessTime color="action" fontSize="small" />
                           <Typography variant="body2" color="text.secondary">
                             {formatDate(media.createdAt)}
                           </Typography>
                         </Box>
                       </Box>
-                    </Box>
-                    <Chip
-                      icon={media.type === 'video' ? <PlayCircle /> : <ImageIcon />}
-                      label={media.type === 'video' ? 'Video' : 'Image'}
-                      color="primary"
-                      variant="outlined"
-                    />
-                  </Box>
-
-                  <Typography 
-                    variant="body1" 
-                    paragraph
-                    sx={{
-                      color: 'text.secondary',
-                      lineHeight: 1.7,
-                      mb: 3,
-                    }}
-                  >
-                    {media.caption}
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <LocationOn color="primary" />
-                      <Typography variant="body2">
-                        {media.location || 'No location'}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {media.tags?.map((tag, index) => (
-                        <Chip
-                          key={index}
-                          label={tag}
-                          size="small"
-                          variant="outlined"
-                          sx={{
-                            borderRadius: 1,
-                            '&:hover': {
-                              backgroundColor: 'primary.light',
-                              color: 'white',
-                            },
-                          }}
-                        />
-                      ))}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <LocationOn sx={{ color: theme.palette.primary.main }} />
+                        <Typography variant="body2" color="text.secondary">
+                          {media.location || 'No location'}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
-
-                  <Divider sx={{ my: 3 }} />
-
-                  <Box sx={{ mb: 4 }}>
-                    <Typography 
-                      variant="h6" 
-                      gutterBottom
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        color: 'primary.main',
-                        fontWeight: 600,
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton 
+                      sx={{ 
+                        color: theme.palette.primary.main,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                        }
                       }}
                     >
-                      <Favorite />
-                      Rate this {media.type}
-                    </Typography>
+                      <Share />
+                    </IconButton>
+                    <IconButton 
+                      onClick={() => setIsBookmarked(!isBookmarked)}
+                      sx={{ 
+                        color: theme.palette.primary.main,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                        }
+                      }}
+                    >
+                      {isBookmarked ? <Bookmark /> : <BookmarkBorder />}
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                <Typography 
+                  variant="body1" 
+                  color="text.secondary"
+                  sx={{ 
+                    mb: 3,
+                    lineHeight: 1.7
+                  }}
+                >
+                  {media.caption}
+                </Typography>
+
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
+                  {media.tags?.map((tag, index) => (
+                    <Chip
+                      key={index}
+                      label={tag}
+                      variant="outlined"
+                      sx={{
+                        borderRadius: 2,
+                        borderColor: alpha(theme.palette.primary.main, 0.3),
+                        color: theme.palette.text.secondary,
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                          borderColor: theme.palette.primary.main,
+                          color: theme.palette.primary.main,
+                        },
+                      }}
+                    />
+                  ))}
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                    Rate this {media.type}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Rating
                       value={userRating}
                       onChange={handleRatingChange}
-                      precision={1}
+                      precision={0.5}
                       size="large"
-                      icon={<Favorite fontSize="inherit" />}
-                      emptyIcon={<Favorite fontSize="inherit" />}
                       sx={{
                         '& .MuiRating-iconFilled': {
-                          color: 'primary.main',
+                          color: theme.palette.primary.main,
                         },
                         '& .MuiRating-iconHover': {
-                          color: 'primary.light',
+                          color: theme.palette.primary.light,
                         },
                       }}
                     />
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Average rating: {media.averageRating?.toFixed(1) || 0} ({media.ratings?.length || 0} ratings)
+                    <Typography variant="body2" color="text.secondary">
+                      ({media.ratings?.length || 0} ratings)
                     </Typography>
                   </Box>
                 </Box>
-              </Paper>
-            </Grid>
 
-            {/* Right Column - Comments */}
-            <Grid item xs={12} md={4}>
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  p: 3,
-                  borderRadius: 4,
-                  backgroundColor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
-              >
-                <Typography 
-                  variant="h6" 
-                  gutterBottom
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    color: 'primary.main',
-                    fontWeight: 600,
-                    mb: 3,
-                  }}
-                >
-                  <Comment />
-                  Comments ({media.comments?.length || 0})
-                </Typography>
-
-                <form onSubmit={handleCommentSubmit}>
-                  <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                    Comments
+                  </Typography>
+                  <Box 
+                    component="form" 
+                    onSubmit={handleCommentSubmit}
+                    sx={{ 
+                      display: 'flex',
+                      gap: 2,
+                      mb: 3
+                    }}
+                  >
                     <TextField
                       fullWidth
                       multiline
                       rows={2}
-                      variant="outlined"
-                      placeholder="Add a comment..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
+                      placeholder="Add a comment..."
+                      variant="outlined"
                       sx={{
                         '& .MuiOutlinedInput-root': {
+                          backgroundColor: alpha(theme.palette.background.paper, 0.6),
+                          backdropFilter: 'blur(10px)',
                           borderRadius: 2,
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                          },
+                          '&.Mui-focused': {
+                            backgroundColor: theme.palette.background.paper,
+                          },
                         },
                       }}
                     />
                     <Button
-                      variant="contained"
                       type="submit"
+                      variant="contained"
+                      color="primary"
                       disabled={!comment.trim()}
                       sx={{
-                        minWidth: 'auto',
-                        px: 2,
-                        height: 'auto',
+                        borderRadius: 2,
+                        px: 4,
+                        height: 'fit-content',
+                        alignSelf: 'flex-end',
                       }}
                     >
-                      <Send />
+                      Post
                     </Button>
                   </Box>
-                </form>
 
-                <List sx={{ maxHeight: 600, overflow: 'auto' }}>
-                  {media.comments?.map((comment, index) => (
-                    <React.Fragment key={comment._id}>
-                      <ListItem 
-                        alignItems="flex-start"
-                        sx={{
-                          px: 0,
-                          '&:hover': {
-                            backgroundColor: 'action.hover',
-                            borderRadius: 2,
-                          },
-                        }}
-                      >
-                        <ListItemAvatar>
-                          <Avatar 
-                            sx={{ 
-                              bgcolor: 'primary.main',
-                            }}
-                          >
-                            {comment.user?.name?.[0]?.toUpperCase()}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Typography
-                                component="span"
-                                variant="subtitle2"
-                                color="primary"
-                                sx={{ fontWeight: 600 }}
-                              >
-                                {comment.user?.name}
-                              </Typography>
-                              <Typography
-                                component="span"
-                                variant="caption"
-                                color="text.secondary"
-                              >
-                                {formatDate(comment.createdAt)}
-                              </Typography>
-                            </Box>
-                          }
-                          secondary={
-                            <Typography
-                              component="span"
-                              variant="body2"
-                              color="text.primary"
-                              sx={{ display: 'block', mt: 1 }}
+                  <List sx={{ width: '100%' }}>
+                    {media.comments?.map((comment, index) => (
+                      <React.Fragment key={comment._id}>
+                        <ListItem 
+                          alignItems="flex-start"
+                          sx={{ 
+                            px: 0,
+                            py: 2
+                          }}
+                        >
+                          <ListItemAvatar>
+                            <Avatar
+                              sx={{
+                                backgroundColor: theme.palette.primary.main,
+                              }}
                             >
-                              {comment.text}
-                            </Typography>
-                          }
-                        />
-                      </ListItem>
-                      {index < media.comments.length - 1 && (
-                        <Divider variant="inset" component="li" sx={{ my: 2 }} />
-                      )}
-                    </React.Fragment>
-                  ))}
-                </List>
-              </Paper>
-            </Grid>
+                              {comment.user?.name?.[0]?.toUpperCase()}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                  {comment.user?.name}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {formatDate(comment.createdAt)}
+                                </Typography>
+                              </Box>
+                            }
+                            secondary={
+                              <Typography
+                                variant="body2"
+                                color="text.primary"
+                                sx={{ 
+                                  mt: 1,
+                                  lineHeight: 1.6
+                                }}
+                              >
+                                {comment.text}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                        {index < media.comments.length - 1 && (
+                          <Divider variant="inset" component="li" />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </List>
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
-        </Box>
+
+          {/* Right Column - Related Content */}
+          <Grid item xs={12} lg={4}>
+            <Card
+              elevation={0}
+              sx={{ 
+                borderRadius: 4,
+                backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                position: 'sticky',
+                top: 24,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+                  Related Content
+                </Typography>
+                {/* Add related content here */}
+                <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary' }}>
+                  <Typography variant="body2">
+                    Related content coming soon...
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Fade>
     </Container>
   );
