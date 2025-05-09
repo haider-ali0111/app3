@@ -20,19 +20,9 @@ import {
   CircularProgress,
   Alert,
   Grid,
-  InputAdornment
+  Divider
 } from '@mui/material';
-import {
-  CloudUpload,
-  Add,
-  Close,
-  Image,
-  Videocam,
-  LocationOn,
-  Label,
-  Title,
-  Description
-} from '@mui/icons-material';
+import { CloudUpload, Add, Close, Image, Videocam, PlayCircle } from '@mui/icons-material';
 import { uploadMedia } from '../../store/slices/mediaSlice';
 
 const validationSchema = Yup.object({
@@ -54,7 +44,6 @@ const MediaUpload = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [tagInput, setTagInput] = useState('');
-  const [dragActive, setDragActive] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -87,35 +76,14 @@ const MediaUpload = () => {
   });
 
   const handleFileChange = (event) => {
-    const selectedFile = event.target.files?.[0];
+    const selectedFile = event.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
-      formik.setFieldValue('type', selectedFile.type.startsWith('video/') ? 'video' : 'image');
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
       };
       reader.readAsDataURL(selectedFile);
-    }
-  };
-
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileChange({ target: { files: e.dataTransfer.files } });
     }
   };
 
@@ -136,40 +104,49 @@ const MediaUpload = () => {
   return (
     <Container maxWidth="md">
       <Fade in={true} timeout={500}>
-        <Box sx={{ py: 4 }}>
-          <Paper
+        <Box sx={{ mt: 4, mb: 4 }}>
+          <Paper 
             elevation={0}
-            sx={{
+            sx={{ 
               p: 4,
-              borderRadius: 4,
-              backgroundColor: 'background.paper',
+              borderRadius: 3,
               border: '1px solid',
               borderColor: 'divider',
+              backgroundColor: 'background.paper',
             }}
           >
-            <Typography
-              variant="h4"
-              gutterBottom
-              sx={{
-                color: 'primary.main',
-                fontWeight: 700,
+            <Box 
+              sx={{ 
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
                 mb: 4,
               }}
             >
-              <CloudUpload />
-              Upload Media
-            </Typography>
+              <PlayCircle sx={{ fontSize: 32, color: 'primary.main' }} />
+              <Typography 
+                variant="h4" 
+                component="h1" 
+                sx={{
+                  color: 'text.primary',
+                  fontWeight: 700,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Upload Media
+              </Typography>
+            </Box>
 
             {error && (
-              <Alert
-                severity="error"
-                sx={{ mb: 4, borderRadius: 2 }}
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mb: 3,
+                  borderRadius: 2,
+                }}
               >
-                {typeof error === 'string'
-                  ? error
+                {typeof error === 'string' 
+                  ? error 
                   : error.message || 'Error uploading media. Please try again.'}
               </Alert>
             )}
@@ -180,23 +157,19 @@ const MediaUpload = () => {
                   <Box
                     sx={{
                       border: '2px dashed',
-                      borderColor: dragActive ? 'primary.main' : 'divider',
-                      borderRadius: 4,
+                      borderColor: 'primary.main',
+                      borderRadius: 3,
                       p: 3,
                       textAlign: 'center',
-                      backgroundColor: dragActive ? 'action.hover' : 'background.default',
+                      backgroundColor: 'action.hover',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
-                        borderColor: 'primary.main',
-                        backgroundColor: 'action.hover',
+                        backgroundColor: 'action.selected',
+                        borderColor: 'primary.dark',
                       },
                     }}
                     onClick={() => document.getElementById('file-input').click()}
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
                   >
                     <input
                       id="file-input"
@@ -211,31 +184,31 @@ const MediaUpload = () => {
                           <video
                             src={preview}
                             controls
-                            style={{ maxWidth: '100%', maxHeight: '300px' }}
+                            style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }}
                           />
                         ) : (
                           <img
                             src={preview}
                             alt="Preview"
-                            style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
+                            style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }}
                           />
                         )}
                         <IconButton
-                          size="small"
                           sx={{
                             position: 'absolute',
                             top: 8,
                             right: 8,
                             backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            backdropFilter: 'blur(4px)',
                             '&:hover': {
-                              backgroundColor: 'white',
+                              backgroundColor: 'error.main',
+                              color: 'white',
                             },
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
                             setFile(null);
                             setPreview(null);
-                            formik.setFieldValue('type', '');
                           }}
                         >
                           <Close />
@@ -245,12 +218,9 @@ const MediaUpload = () => {
                       <Box>
                         <CloudUpload sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
                         <Typography variant="h6" color="primary" gutterBottom>
-                          Drag and drop your file here
+                          Click to select a file
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          or click to select a file
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
                           Supported formats: Images and Videos
                         </Typography>
                       </Box>
@@ -259,18 +229,31 @@ const MediaUpload = () => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <FormControl fullWidth error={formik.touched.type && Boolean(formik.errors.type)}>
+                  <FormControl fullWidth>
                     <InputLabel>Media Type</InputLabel>
                     <Select
                       name="type"
                       value={formik.values.type}
                       onChange={formik.handleChange}
+                      error={formik.touched.type && Boolean(formik.errors.type)}
                       label="Media Type"
+                      sx={{
+                        borderRadius: 2,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'divider',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'primary.main',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderWidth: '2px',
+                        },
+                      }}
                       startAdornment={
                         formik.values.type === 'video' ? (
-                          <Videocam sx={{ ml: 1, mr: -0.5, color: 'primary.main' }} />
+                          <Videocam sx={{ ml: 1, mr: 1, color: 'primary.main' }} />
                         ) : formik.values.type === 'image' ? (
-                          <Image sx={{ ml: 1, mr: -0.5, color: 'primary.main' }} />
+                          <Image sx={{ ml: 1, mr: 1, color: 'primary.main' }} />
                         ) : null
                       }
                     >
@@ -289,12 +272,16 @@ const MediaUpload = () => {
                     onChange={formik.handleChange}
                     error={formik.touched.title && Boolean(formik.errors.title)}
                     helperText={formik.touched.title && formik.errors.title}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Title color="primary" />
-                        </InputAdornment>
-                      ),
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        '&:hover fieldset': {
+                          borderColor: 'primary.main',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderWidth: '2px',
+                        },
+                      },
                     }}
                   />
                 </Grid>
@@ -310,12 +297,16 @@ const MediaUpload = () => {
                     onChange={formik.handleChange}
                     error={formik.touched.caption && Boolean(formik.errors.caption)}
                     helperText={formik.touched.caption && formik.errors.caption}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Description color="primary" />
-                        </InputAdornment>
-                      ),
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        '&:hover fieldset': {
+                          borderColor: 'primary.main',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderWidth: '2px',
+                        },
+                      },
                     }}
                   />
                 </Grid>
@@ -329,20 +320,23 @@ const MediaUpload = () => {
                     onChange={formik.handleChange}
                     error={formik.touched.location && Boolean(formik.errors.location)}
                     helperText={formik.touched.location && formik.errors.location}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LocationOn color="primary" />
-                        </InputAdornment>
-                      ),
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        '&:hover fieldset': {
+                          borderColor: 'primary.main',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderWidth: '2px',
+                        },
+                      },
                     }}
                   />
                 </Grid>
 
                 <Grid item xs={12}>
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Label color="primary" />
+                    <Typography variant="subtitle1" gutterBottom>
                       Tags
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
@@ -357,6 +351,17 @@ const MediaUpload = () => {
                             handleAddTag();
                           }
                         }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            '&:hover fieldset': {
+                              borderColor: 'primary.main',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderWidth: '2px',
+                            },
+                          },
+                        }}
                       />
                       <Button
                         variant="contained"
@@ -366,6 +371,10 @@ const MediaUpload = () => {
                           minWidth: 48,
                           height: 56,
                           borderRadius: 2,
+                          boxShadow: 'none',
+                          '&:hover': {
+                            boxShadow: 'none',
+                          },
                         }}
                       >
                         <Add />
@@ -378,10 +387,13 @@ const MediaUpload = () => {
                           label={tag}
                           onDelete={() => handleRemoveTag(tag)}
                           sx={{
-                            borderRadius: 2,
+                            borderRadius: 1,
                             '&:hover': {
                               backgroundColor: 'primary.light',
                               color: 'white',
+                              '& .MuiChip-deleteIcon': {
+                                color: 'white',
+                              },
                             },
                           }}
                         />
@@ -391,37 +403,31 @@ const MediaUpload = () => {
                 </Grid>
 
                 <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
                   <Button
                     type="submit"
                     variant="contained"
                     fullWidth
                     disabled={loading || !file}
                     sx={{
-                      height: 56,
+                      height: 48,
                       fontSize: '1.1rem',
-                      fontWeight: 600,
                       borderRadius: 2,
-                      textTransform: 'none',
-                      position: 'relative',
+                      boxShadow: 'none',
                       '&:hover': {
-                        transform: 'translateY(-1px)',
+                        boxShadow: 'none',
                       },
-                      transition: 'transform 0.2s ease-in-out',
                     }}
                   >
                     {loading ? (
                       <CircularProgress
                         size={24}
                         sx={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          marginTop: '-12px',
-                          marginLeft: '-12px',
+                          color: 'inherit',
                         }}
                       />
                     ) : (
-                      'Upload Media'
+                      'Upload'
                     )}
                   </Button>
                 </Grid>
